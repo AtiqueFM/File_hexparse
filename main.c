@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define SET                 1
 #define RESET               !SET
@@ -49,7 +50,32 @@ char filename_MCU[] = "Read_data.txt";
 int row_data[50];
 /*length of row data*/
 unsigned int length;
+/*32 bits to 8 bits*/
+typedef union{
+    uint8_t bytes[4];
+    struct{
+        uint32_t u32data;
+    };
+}u32tou8Handle_t;
+/*Flag to store the read data in the file*/
+uint8_t store_in_file = RESET;
+/*
+Function name :- reverse
+return type :- u32tou8Handle_t
+arguments :- u32tou8Handle_t
+Description :- 
+                array reverse
+*/
+u32tou8Handle_t reverse(u32tou8Handle_t arg)
+{
+    u32tou8Handle_t temp;
+    temp.bytes[3] = arg.bytes[0];
+    temp.bytes[2] = arg.bytes[1];
+    temp.bytes[1] = arg.bytes[2];
+    temp.bytes[0] = arg.bytes[3];
 
+    return temp;
+}
 /*
 Function name :- getHEXfileData
 return type :- int
@@ -96,6 +122,8 @@ int getHEXfileData()
     
     int j = 0;
 
+    u32tou8Handle_t flashaddrTobytes;
+
     //printf("Data type: %x\n",data_typ);
     //printf("CRC: %x\n",hex_pair[data_start+data_len]);
     
@@ -106,16 +134,32 @@ int getHEXfileData()
         Actual HEX data to be sent over UART/SPI to target MCU.
         */
         #if PRINT_HEX_DATA
+            #if defined(PRINT_DATA)
             printf("%x | ",flash_addr + offset_addr);
-            //printf("data_len is :%d\n",data_len);
-            for(int i = 0;i<data_len;i++)
+            #endif
+            flashaddrTobytes.u32data = flash_addr + offset_addr;
+            flashaddrTobytes = reverse(flashaddrTobytes);
+            for(int i = 0;i <= (data_len + 5);i++,j++)
             {
+                if(i < 4)
+                {
+                    row_data[j] = flashaddrTobytes.bytes[i];
+                }
+                else if(i == 4)
+                {
+                    row_data[j] = data_len;
+                }else if(i > 4)
+                {
+                #if defined(PRINT_DATA)
                 //Send over uart with FLASH address first
                 printf("%x ",hex_pair[data_start + i]);
-                row_data[j] = hex_pair[data_start + i];
-                j += 1;
+                #endif
+                row_data[j] = hex_pair[data_start + i - 5];
+                //j += 1;
+                }
             }
-            length = data_len - 1;
+            length = data_len + 5 - 1;// 4 bytes for 32 bit FLASH address + 1 byte for number of data bytes
+            store_in_file = SET;
             printf("\n");
         #endif
         break;
@@ -202,13 +246,17 @@ int main()
 
             }
             getHEXfileData();
-            //Write the roe hex data into new file
-            int k = 0;
-            for(k = 0;k<=length;k++)
-                fprintf(ptr_txt_file, "%x ", row_data[k]);
-            fprintf(ptr_txt_file,"\n");
-            memset(row_data,NULL,sizeof(row_data));
-            length = 0;
+            if(store_in_file == SET)
+            {
+                store_in_file = RESET;
+                //Write the roe hex data into new file
+                int k = 0;
+                for(k = 0;k<=length;k++)
+                    fprintf(ptr_txt_file, "%x ", row_data[k]);
+                fprintf(ptr_txt_file,"\n");
+                memset(row_data,'\0',sizeof(row_data));
+                length = 0;
+            }
             index = 0;//test
         }
         // Checking if character is not EOF.
