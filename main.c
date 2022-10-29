@@ -59,6 +59,8 @@ typedef union{
 }u32tou8Handle_t;
 /*Flag to store the read data in the file*/
 uint8_t store_in_file = RESET;
+/*Number of rows*/
+uint32_t no_of_rows;
 /*
 Function name :- reverse
 return type :- u32tou8Handle_t
@@ -159,6 +161,7 @@ int getHEXfileData()
                 }
             }
             length = data_len + 5 - 1;// 4 bytes for 32 bit FLASH address + 1 byte for number of data bytes
+            no_of_rows += 1;
             store_in_file = SET;
             printf("\n");
         #endif
@@ -174,6 +177,7 @@ int getHEXfileData()
         */
             flash_addr = (hex_pair[data_start] << BIT_24)|(hex_pair[data_start + 1] << BIT_16);
             printf("flash address: %x\n",flash_addr);
+            store_in_file = SET;
         break;
         
         case START_LINEAR_ADDRESS_RECORD:
@@ -193,6 +197,13 @@ int getHEXfileData()
 
 }
 
+void workaround(FILE *ptr)
+{
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5);
+}
 
 // Driver code
 int main()
@@ -212,7 +223,7 @@ int main()
 
 	// Opening file to write the parsed data
 	ptr_txt_file = fopen(filename_MCU, "wb+");
-	
+    workaround(ptr_txt_file);
     if (NULL == ptr_txt_file) {
 		printf("file can't be opened \n");
 	}
@@ -264,8 +275,24 @@ int main()
     	} while (ch != EOF);
 	// Closing the file
 	fclose(ptr);
-	
-	
+    //get the size of the hex data
+    long int res = ftell(ptr_txt_file);
+	// Opening file to write the parsed data
+    fseek(ptr_txt_file,0,SEEK_SET);
+    uint8_t temp[4];
+    u32tou8Handle_t stru;
+    stru.u32data = no_of_rows;
+    stru = reverse(stru);
+    for(int k = 0;k<4;k++)
+        fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
+    fprintf(ptr_txt_file,"\n");
+
+    stru.u32data = res;
+    stru = reverse(stru);
+    for(int k = 0;k<4;k++)
+        fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
+    fprintf(ptr_txt_file,"\n");
+
 	return 0;
 }
 
