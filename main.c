@@ -261,6 +261,8 @@ int main()
             {
                 store_in_file = RESET;
                 //Write the roe hex data into new file
+                char d = ' ';
+                fprintf(ptr_txt_file, "%c",d);
                 int k = 0;
                 for(k = 0;k<=length;k++)
                     fprintf(ptr_txt_file, "%x ", row_data[k]);
