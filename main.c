@@ -202,7 +202,7 @@ void workaround(FILE *ptr)
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
-    fprintf(ptr, "%x", 0x5a5);
+    fprintf(ptr, "%x ", 0x5a5);
 }
 
 // Driver code
@@ -285,12 +285,16 @@ int main()
     u32tou8Handle_t stru;
     stru.u32data = no_of_rows;
     stru = reverse(stru);
+    char d = ' ';
+    fprintf(ptr_txt_file, "%c",d);
     for(int k = 0;k<4;k++)
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
 
     stru.u32data = res;
     stru = reverse(stru);
+    d = ' ';
+    fprintf(ptr_txt_file, "%c",d);
     for(int k = 0;k<4;k++)
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
