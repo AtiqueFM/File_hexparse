@@ -8,6 +8,7 @@
 #define SET                 1
 #define RESET               !SET
 #define PRINT_HEX_DATA      SET
+#define PRINT_DATA
 
 /*
     HEX file frame:- |1byte (Length)|2bytes (offset address)| 1bytes (type of data)|nbytes (data)| 1byte (data check)| 
@@ -43,7 +44,7 @@ int flash_addr;
 /*Reset handler address*/
 int reset_handler_addr;
 /*Hex file path*/
-char filename[] = "Application_V3.0.0.hex";
+char filename[] = "LED.hex";
 /*Hex file parsed*/
 char filename_MCU[] = "Read_data.txt";
 /*Row hex data*/
