@@ -44,7 +44,7 @@ int flash_addr;
 /*Reset handler address*/
 int reset_handler_addr;
 /*Hex file path*/
-char filename[] = "LED.hex";
+char filename[] = "/home/atiqueshaikh/Forbes Marshall - Projects/STM32_UART/awa-cxii/Debug/awa-cxii.hex";
 /*Hex file parsed*/
 char filename_MCU[] = "Read_data.txt";
 /*Row hex data*/
