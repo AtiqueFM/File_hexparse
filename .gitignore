@@ -6,3 +6,5 @@ a.out
 main
 
 *.txt
+
+*.hex
