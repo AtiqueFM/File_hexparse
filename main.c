@@ -8,7 +8,7 @@
 #define SET                 1
 #define RESET               !SET
 #define PRINT_HEX_DATA      SET
-#define PRINT_DATA
+//#define PRINT_DATA
 
 /*
     HEX file frame:- |1byte (Length)|2bytes (offset address)| 1bytes (type of data)|nbytes (data)| 1byte (data check)| 
@@ -89,12 +89,7 @@ Description :-
 Gloabl Varibale :- 
                     hex_pair
                             type :- integer array
-                            length :- 100
-                            Description :- contains the final hex data except the flash address.
-                    flash_addr
-                            type :- integer
-                            length :- 1
-                            Description :- stores the starting address of FLASH memory
+                            l.u8arrayescription :- stores the starting address of FLASH memory
 Local Varibale :-
                     data_len
                             type :- char
@@ -164,7 +159,9 @@ int getHEXfileData()
             length = data_len + 5 - 1;// 4 bytes for 32 bit FLASH address + 1 byte for number of data bytes
             no_of_rows += 1;
             store_in_file = SET;
+            #if defined(PRINT_DATA)
             printf("\n");
+            #endif
         #endif
         break;
         case END_OF_FILE:
@@ -232,6 +229,53 @@ int main()
 
 	// Printing what is written in file
 	// character by character using loop.
+
+
+
+#if 1
+    //------------------------------------------//
+    //-------CONFIGURATION DATA-----------------//
+    uint32_t input_data = 0;
+    uint32_t l_data_length = 4;
+    int j = 0;
+    char l_row_data[9] = {0};
+
+    typedef union{
+        uint8_t u8array[4];
+        uint32_t u32data;
+    }segg;
+    // segg input_data_segg;
+    u32tou8Handle_t input_data_segg;
+
+    printf("BOOTLOADER_PARTION_SIZE: ");
+    scanf("%d",&input_data_segg.u32data);
+    u32tou8Handle_t l_flashaddrTobytes;
+    l_flashaddrTobytes.u32data = 0x8010000;
+    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    input_data_segg = reverse(input_data_segg);
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = l_flashaddrTobytes.bytes[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = input_data_segg.bytes[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n");
+    //------------------------------------------//
+#endif
+
 	do {
 		ch = fgetc(ptr);
 		
@@ -263,10 +307,10 @@ int main()
                 store_in_file = RESET;
                 //Write the roe hex data into new file
                 char d = ' ';
-                fprintf(ptr_txt_file, "%c",d);
+                fprintf(ptr_txt_file, "%c",d);//Writing space before the starting byte
                 int k = 0;
                 for(k = 0;k<=length;k++)
-                    fprintf(ptr_txt_file, "%x ", row_data[k]);
+                    fprintf(ptr_txt_file, "%x ", row_data[k]);//writing the actual data
                 fprintf(ptr_txt_file,"\n");
                 memset(row_data,'\0',sizeof(row_data));
                 length = 0;
@@ -278,10 +322,14 @@ int main()
     	} while (ch != EOF);
 	// Closing the file
 	fclose(ptr);
+
     //get the size of the hex data
     long int res = ftell(ptr_txt_file);
+
 	// Opening file to write the parsed data
     fseek(ptr_txt_file,0,SEEK_SET);
+
+    //Storning the number of rows
     uint8_t temp[4];
     u32tou8Handle_t stru;
     stru.u32data = no_of_rows;
@@ -292,6 +340,7 @@ int main()
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
 
+    //storing the file size
     stru.u32data = res;
     stru = reverse(stru);
     d = ' ';
