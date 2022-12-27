@@ -103,52 +103,17 @@ Description :-
 Gloabl Varibale :- 
                     hex_pair
                             type :- integer array
-                            l.u8arrayescription :- stores the starting address of FLASH memory
+                            length :- 100
+                            Description :- contains the final hex data except the flash address.
+                    flash_addr
+                            type :- integer
+                            length :- 1
+                            Description :- stores the starting address of FLASH memory
 Local Varibale :-
-                    data_len    //------------------------------------------//
-    //-------CONFIGURATION DATA-----------------//
-    FILE* ptr_txt_file;
-    	// Opening file to write the parsed data
-	ptr_txt_file = fopen(filename_config_data, "w");
-    if (NULL == ptr_txt_file) {
-		printf("file can't be opened \n");
-	}
-
-    uint32_t input_data = 0;
-    uint32_t l_data_length = 4;
-    int j = 0;
-    char l_row_data[10] = {0};
-    u32tou8Handle_t l_flashaddrTobytes;
-    u32tou8Handle_t input_data_segg;
-
-    //printf("BOOTLOADER_PARTION_SIZE: ");
-    //scanf("%d",&input_data_segg.u32data);
-    input_data_segg.u32data = 0x12345678;
-    
-    l_flashaddrTobytes.u32data = 0x8010000;
-    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
-    input_data_segg = reverse(input_data_segg);
-    
-    for(int i = 0;i <= (l_data_length + 5);i++,j++)
-    {
-        if(i < 4)
-        {
-            l_row_data[j] = l_flashaddrTobytes.bytes[i];
-        }
-        else if(i == 4)
-        {
-            l_row_data[j] = l_data_length;
-        }else if(i > 4)
-        {
-        l_row_data[j] = input_data_segg.bytes[i - 5];
-        }
-    }
-    //print in the file
-    char t = ' ';
-    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
-    for(int i = 0;i<9;i++)
-        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
-    fprintf(ptr_txt_file,"\n"); :- stores the data in a single row if the file
+                    data_len
+                            type :- char
+                            Length :- 1 
+                            Description :- stores the data in a single row if the file
                     
                     offset_addr
                             type :- unsigned int
@@ -282,58 +247,8 @@ int main()
 	}
 	printf("content of this file are \n");
 
-	// Printing what is written in file
-	// character by character using loop.
-
-    //add_bootloader_config_data();
-#if 0
-    //------------------------------------------//
-    //-------CONFIGURATION DATA-----------------//
-    //FILE* ptr_txt_file;
-    	// Opening file to write the parsed data
-	//ptr_txt_file = fopen(filename_config_data, "w");
-    //if (NULL == ptr_txt_file) {
-		//printf("file can't be opened \n");
-	//}
-
-    uint32_t input_data = 0;
-    uint32_t l_data_length = 4;
-    int j = 0;
-    char l_row_data[10] = {0};
-    u32tou8Handle_t l_flashaddrTobytes;
-    u32tou8Handle_t input_data_segg;
-
-    //printf("BOOTLOADER_PARTION_SIZE: ");
-    //scanf("%d",&input_data_segg.u32data);
-    input_data_segg.u32data = 0x12345678;
-    
-    l_flashaddrTobytes.u32data = 0x8010000;
-    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
-    input_data_segg = reverse(input_data_segg);
-    
-    for(int i = 0;i <= (l_data_length + 5);i++,j++)
-    {
-        if(i < 4)
-        {
-            l_row_data[j] = l_flashaddrTobytes.bytes[i];
-        }
-        else if(i == 4)
-        {
-            l_row_data[j] = l_data_length;
-        }else if(i > 4)
-        {
-        l_row_data[j] = input_data_segg.bytes[i - 5];
-        }
-    }
-    //print in the file
-    char t = ' ';
-    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
-    for(int i = 0;i<9;i++)
-        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
-    fprintf(ptr_txt_file,"\n");
-#else
     add_bootloader_config_data(ptr_txt_file);
-#endif
+
     //---------------------------------------------//
 
 	do {
@@ -383,8 +298,7 @@ int main()
 	// Closing the file
 	fclose(ptr);
 
-    //add_bootloader_config_data();
-#if 1 //Workaroud
+
     //get the size of the hex data
     long int res = ftell(ptr_txt_file);
 
@@ -410,54 +324,13 @@ int main()
     for(int k = 0;k<4;k++)
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
-#else
-	FILE* ptr_info_file;
-    	// Opening file to write the parsed data
-	ptr_info_file = fopen(filename_info, "wb+");
-    if (NULL == ptr_info_file) {
-		printf("file can't be opened \n");
-	}
-        //get the size of the hex data
-    long int res = ftell(ptr_txt_file);
 
-
-    //Storning the number of rows
-    uint8_t temp[4];
-    u32tou8Handle_t stru;
-    stru.u32data = no_of_rows;
-    stru = reverse(stru);
-    char d = ' ';
-    fprintf(ptr_info_file, "%c",d);
-    for(int k = 0;k<4;k++)
-        fprintf(ptr_info_file, "%x ", stru.bytes[k]);
-    fprintf(ptr_info_file,"\n");
-
-    //storing the file size
-    stru.u32data = res;
-    stru = reverse(stru);
-    d = ' ';
-    fprintf(ptr_info_file, "%c",d);
-    for(int k = 0;k<4;k++)
-        fprintf(ptr_info_file, "%x ", stru.bytes[k]);
-    fprintf(ptr_info_file,"\n");
-
-    fclose(ptr_info_file);
-#endif
 	return 0;
 }
 
 
 static void add_bootloader_config_data(FILE *ptr_txt_file)
 {
-
-    //------------------------------------------//
-    //-------CONFIGURATION DATA-----------------//
-    //FILE* ptr_txt_file;
-    	// Opening file to write the parsed data
-	//ptr_txt_file = fopen(filename_config_data, "w");
-    //if (NULL == ptr_txt_file) {
-	//	printf("file can't be opened \n");
-	//}
 
     uint32_t input_data = 0;
     uint32_t l_data_length = 4;
@@ -513,8 +386,6 @@ static void config_data_in_file(FILE *ptr_txt_file,uint8_t *pAddress,uint8_t *pD
 
 static void fill_data(u32tou8Handle_t *l_flashaddrTobytes,u32tou8Handle_t *input_data_segg,uint32_t address, uint32_t data)
 {
-    //memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
-    //memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
     input_data_segg->u32data = data;
     l_flashaddrTobytes->u32data = address;
     *l_flashaddrTobytes = reverse(*l_flashaddrTobytes);
