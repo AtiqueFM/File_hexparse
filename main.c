@@ -103,10 +103,50 @@ Gloabl Varibale :-
                             type :- integer array
                             l.u8arrayescription :- stores the starting address of FLASH memory
 Local Varibale :-
-                    data_len
-                            type :- char
-                            Length :- 1 
-                            Description :- stores the data in a single row if the file
+                    data_len    //------------------------------------------//
+    //-------CONFIGURATION DATA-----------------//
+    FILE* ptr_txt_file;
+    	// Opening file to write the parsed data
+	ptr_txt_file = fopen(filename_config_data, "w");
+    if (NULL == ptr_txt_file) {
+		printf("file can't be opened \n");
+	}
+
+    uint32_t input_data = 0;
+    uint32_t l_data_length = 4;
+    int j = 0;
+    char l_row_data[10] = {0};
+    u32tou8Handle_t l_flashaddrTobytes;
+    u32tou8Handle_t input_data_segg;
+
+    //printf("BOOTLOADER_PARTION_SIZE: ");
+    //scanf("%d",&input_data_segg.u32data);
+    input_data_segg.u32data = 0x12345678;
+    
+    l_flashaddrTobytes.u32data = 0x8010000;
+    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    input_data_segg = reverse(input_data_segg);
+    
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = l_flashaddrTobytes.bytes[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = input_data_segg.bytes[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n"); :- stores the data in a single row if the file
                     
                     offset_addr
                             type :- unsigned int
@@ -212,7 +252,8 @@ void workaround(FILE *ptr)
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
-    fprintf(ptr, "%x ", 0x5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5);
 }
 
 // Driver code
@@ -233,7 +274,7 @@ int main()
 
 	// Opening file to write the parsed data
 	ptr_txt_file = fopen(filename_MCU, "wb+");
-    //workaround(ptr_txt_file);
+    workaround(ptr_txt_file);
     if (NULL == ptr_txt_file) {
 		printf("file can't be opened \n");
 	}
@@ -244,7 +285,53 @@ int main()
 
     //add_bootloader_config_data();
 
+    //------------------------------------------//
+    //-------CONFIGURATION DATA-----------------//
+    //FILE* ptr_txt_file;
+    	// Opening file to write the parsed data
+	//ptr_txt_file = fopen(filename_config_data, "w");
+    //if (NULL == ptr_txt_file) {
+		//printf("file can't be opened \n");
+	//}
 
+    uint32_t input_data = 0;
+    uint32_t l_data_length = 4;
+    int j = 0;
+    char l_row_data[10] = {0};
+    u32tou8Handle_t l_flashaddrTobytes;
+    u32tou8Handle_t input_data_segg;
+
+    //printf("BOOTLOADER_PARTION_SIZE: ");
+    //scanf("%d",&input_data_segg.u32data);
+    input_data_segg.u32data = 0x12345678;
+    
+    l_flashaddrTobytes.u32data = 0x8010000;
+    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    input_data_segg = reverse(input_data_segg);
+    
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = l_flashaddrTobytes.bytes[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = input_data_segg.bytes[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n");
+
+
+    //---------------------------------------------//
 
 	do {
 		ch = fgetc(ptr);
@@ -293,8 +380,8 @@ int main()
 	// Closing the file
 	fclose(ptr);
 
-    add_bootloader_config_data();
-#if 0 //Workaroud
+    //add_bootloader_config_data();
+#if 1 //Workaroud
     //get the size of the hex data
     long int res = ftell(ptr_txt_file);
 
