@@ -229,7 +229,7 @@ int getHEXfileData()
         */
             flash_addr = (hex_pair[data_start] << BIT_24)|(hex_pair[data_start + 1] << BIT_16);
             printf("flash address: %x\n",flash_addr);
-            store_in_file = SET;
+            //store_in_file = SET;
         break;
         
         case START_LINEAR_ADDRESS_RECORD:
