@@ -46,7 +46,13 @@ int reset_handler_addr;
 /*Hex file path*/
 char filename[] = "/home/atiqueshaikh/Forbes Marshall - Projects/STM32_UART/awa-cxii/Debug/awa-cxii.hex";
 /*Hex file parsed*/
-char filename_MCU[] = "Read_data.txt";
+char filename_MCU[] = "Build/Read_data.txt";
+/*Info file*/
+char filename_info[] = "Build/Info.txt";
+/*Info file*/
+char filename_config_data[] = "Build/Config_data.txt";
+/*Final merged File*/
+char filename_final_merge[] = "Build/program.txt";
 /*Row hex data*/
 int row_data[50];
 /*length of row data*/
@@ -79,6 +85,14 @@ u32tou8Handle_t reverse(u32tou8Handle_t arg)
 
     return temp;
 }
+
+/*
+Fucntion prototyping
+*/
+static void add_bootloader_config_data(FILE *ptr_txt_file);
+static void config_data_in_file(FILE *ptr_txt_file,uint8_t *pAddress,uint8_t *pData);
+static void fill_data(u32tou8Handle_t *l_flashaddrTobytes,u32tou8Handle_t *input_data_segg,uint32_t address, uint32_t data);
+
 /*
 Function name :- getHEXfileData
 return type :- int
@@ -91,10 +105,50 @@ Gloabl Varibale :-
                             type :- integer array
                             l.u8arrayescription :- stores the starting address of FLASH memory
 Local Varibale :-
-                    data_len
-                            type :- char
-                            Length :- 1 
-                            Description :- stores the data in a single row if the file
+                    data_len    //------------------------------------------//
+    //-------CONFIGURATION DATA-----------------//
+    FILE* ptr_txt_file;
+    	// Opening file to write the parsed data
+	ptr_txt_file = fopen(filename_config_data, "w");
+    if (NULL == ptr_txt_file) {
+		printf("file can't be opened \n");
+	}
+
+    uint32_t input_data = 0;
+    uint32_t l_data_length = 4;
+    int j = 0;
+    char l_row_data[10] = {0};
+    u32tou8Handle_t l_flashaddrTobytes;
+    u32tou8Handle_t input_data_segg;
+
+    //printf("BOOTLOADER_PARTION_SIZE: ");
+    //scanf("%d",&input_data_segg.u32data);
+    input_data_segg.u32data = 0x12345678;
+    
+    l_flashaddrTobytes.u32data = 0x8010000;
+    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    input_data_segg = reverse(input_data_segg);
+    
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = l_flashaddrTobytes.bytes[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = input_data_segg.bytes[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n"); :- stores the data in a single row if the file
                     
                     offset_addr
                             type :- unsigned int
@@ -200,7 +254,8 @@ void workaround(FILE *ptr)
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
-    fprintf(ptr, "%x ", 0x5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5);
 }
 
 // Driver code
@@ -230,29 +285,32 @@ int main()
 	// Printing what is written in file
 	// character by character using loop.
 
-
-
-#if 1
+    //add_bootloader_config_data();
+#if 0
     //------------------------------------------//
     //-------CONFIGURATION DATA-----------------//
+    //FILE* ptr_txt_file;
+    	// Opening file to write the parsed data
+	//ptr_txt_file = fopen(filename_config_data, "w");
+    //if (NULL == ptr_txt_file) {
+		//printf("file can't be opened \n");
+	//}
+
     uint32_t input_data = 0;
     uint32_t l_data_length = 4;
     int j = 0;
-    char l_row_data[9] = {0};
-
-    typedef union{
-        uint8_t u8array[4];
-        uint32_t u32data;
-    }segg;
-    // segg input_data_segg;
+    char l_row_data[10] = {0};
+    u32tou8Handle_t l_flashaddrTobytes;
     u32tou8Handle_t input_data_segg;
 
-    printf("BOOTLOADER_PARTION_SIZE: ");
-    scanf("%d",&input_data_segg.u32data);
-    u32tou8Handle_t l_flashaddrTobytes;
+    //printf("BOOTLOADER_PARTION_SIZE: ");
+    //scanf("%d",&input_data_segg.u32data);
+    input_data_segg.u32data = 0x12345678;
+    
     l_flashaddrTobytes.u32data = 0x8010000;
     l_flashaddrTobytes = reverse(l_flashaddrTobytes);
     input_data_segg = reverse(input_data_segg);
+    
     for(int i = 0;i <= (l_data_length + 5);i++,j++)
     {
         if(i < 4)
@@ -273,8 +331,10 @@ int main()
     for(int i = 0;i<9;i++)
         fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
     fprintf(ptr_txt_file,"\n");
-    //------------------------------------------//
+#else
+    add_bootloader_config_data(ptr_txt_file);
 #endif
+    //---------------------------------------------//
 
 	do {
 		ch = fgetc(ptr);
@@ -323,6 +383,8 @@ int main()
 	// Closing the file
 	fclose(ptr);
 
+    //add_bootloader_config_data();
+#if 1 //Workaroud
     //get the size of the hex data
     long int res = ftell(ptr_txt_file);
 
@@ -348,7 +410,169 @@ int main()
     for(int k = 0;k<4;k++)
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
+#else
+	FILE* ptr_info_file;
+    	// Opening file to write the parsed data
+	ptr_info_file = fopen(filename_info, "wb+");
+    if (NULL == ptr_info_file) {
+		printf("file can't be opened \n");
+	}
+        //get the size of the hex data
+    long int res = ftell(ptr_txt_file);
 
+
+    //Storning the number of rows
+    uint8_t temp[4];
+    u32tou8Handle_t stru;
+    stru.u32data = no_of_rows;
+    stru = reverse(stru);
+    char d = ' ';
+    fprintf(ptr_info_file, "%c",d);
+    for(int k = 0;k<4;k++)
+        fprintf(ptr_info_file, "%x ", stru.bytes[k]);
+    fprintf(ptr_info_file,"\n");
+
+    //storing the file size
+    stru.u32data = res;
+    stru = reverse(stru);
+    d = ' ';
+    fprintf(ptr_info_file, "%c",d);
+    for(int k = 0;k<4;k++)
+        fprintf(ptr_info_file, "%x ", stru.bytes[k]);
+    fprintf(ptr_info_file,"\n");
+
+    fclose(ptr_info_file);
+#endif
 	return 0;
 }
 
+
+static void add_bootloader_config_data(FILE *ptr_txt_file)
+{
+
+    //------------------------------------------//
+    //-------CONFIGURATION DATA-----------------//
+    //FILE* ptr_txt_file;
+    	// Opening file to write the parsed data
+	//ptr_txt_file = fopen(filename_config_data, "w");
+    //if (NULL == ptr_txt_file) {
+	//	printf("file can't be opened \n");
+	//}
+
+    uint32_t input_data = 0;
+    uint32_t l_data_length = 4;
+    int j = 0;
+    char l_row_data[10] = {0};
+    u32tou8Handle_t l_flashaddrTobytes;
+    u32tou8Handle_t input_data_segg;
+
+    //printf("BOOTLOADER_PARTION_SIZE: ");
+    //scanf("%d",&input_data_segg.u32data);
+    input_data_segg.u32data = 0x12345678;
+    
+    l_flashaddrTobytes.u32data = 0x8010000;
+    l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    input_data_segg = reverse(input_data_segg);
+    #if 0
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = l_flashaddrTobytes.bytes[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = input_data_segg.bytes[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n");
+    //fclose(ptr_txt_file);
+    //------------------------------------------//
+    #else
+    config_data_in_file(ptr_txt_file,l_flashaddrTobytes.bytes,input_data_segg.bytes);
+
+    // memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
+    // memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
+    // input_data_segg.u32data = 0x11223344;
+    // l_flashaddrTobytes.u32data = 0x8010004;
+    // l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    // input_data_segg = reverse(input_data_segg);
+
+    fill_data(&l_flashaddrTobytes,&input_data_segg,0x8010004,0x11223344);
+    config_data_in_file(ptr_txt_file,l_flashaddrTobytes.bytes,input_data_segg.bytes);
+
+    // memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
+    // memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
+    // input_data_segg.u32data = 0xaabbccdd;
+    // l_flashaddrTobytes.u32data = 0x8010008;
+    // l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    // input_data_segg = reverse(input_data_segg);
+    fill_data(&l_flashaddrTobytes,&input_data_segg,0x8010008,0xaabbccdd);
+    config_data_in_file(ptr_txt_file,l_flashaddrTobytes.bytes,input_data_segg.bytes);
+
+    // memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
+    // memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
+    // input_data_segg.u32data = 0x88551122;
+    // l_flashaddrTobytes.u32data = 0x801000b;
+    // l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    // input_data_segg = reverse(input_data_segg);
+    fill_data(&l_flashaddrTobytes,&input_data_segg,0x801000b,0x88551122);
+    config_data_in_file(ptr_txt_file,l_flashaddrTobytes.bytes,input_data_segg.bytes);
+
+    // memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
+    // memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
+    // input_data_segg.u32data = 0x44663322;
+    // l_flashaddrTobytes.u32data = 0x8010010;
+    // l_flashaddrTobytes = reverse(l_flashaddrTobytes);
+    // input_data_segg = reverse(input_data_segg);
+    fill_data(&l_flashaddrTobytes,&input_data_segg,0x8010010,0x44663322);
+    config_data_in_file(ptr_txt_file,l_flashaddrTobytes.bytes,input_data_segg.bytes);
+    #endif
+
+}
+
+static void config_data_in_file(FILE *ptr_txt_file,uint8_t *pAddress,uint8_t *pData)
+{
+    uint8_t l_row_data[10] = {0};
+    int l_data_length = 4;
+    int j = 0;
+
+    for(int i = 0;i <= (l_data_length + 5);i++,j++)
+    {
+        if(i < 4)
+        {
+            l_row_data[j] = pAddress[i];
+        }
+        else if(i == 4)
+        {
+            l_row_data[j] = l_data_length;
+        }else if(i > 4)
+        {
+        l_row_data[j] = pData[i - 5];
+        }
+    }
+    //print in the file
+    char t = ' ';
+    fprintf(ptr_txt_file, "%c",t);//Writing space before the starting byte
+    for(int i = 0;i<9;i++)
+        fprintf(ptr_txt_file, "%x ", l_row_data[i]);//writing the actual data
+    fprintf(ptr_txt_file,"\n");
+}
+
+static void fill_data(u32tou8Handle_t *l_flashaddrTobytes,u32tou8Handle_t *input_data_segg,uint32_t address, uint32_t data)
+{
+    //memset(input_data_segg.bytes,0,sizeof(input_data_segg.bytes));
+    //memset(l_flashaddrTobytes.bytes,0,sizeof(l_flashaddrTobytes.bytes));
+    input_data_segg->u32data = data;
+    l_flashaddrTobytes->u32data = address;
+    *l_flashaddrTobytes = reverse(*l_flashaddrTobytes);
+    *input_data_segg = reverse(*input_data_segg);
+}
