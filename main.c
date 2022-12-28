@@ -221,11 +221,19 @@ int getHEXfileData()
 
 void workaround(FILE *ptr)
 {
+    #if 0
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x", 0x5a5a5);
     fprintf(ptr, "%x ", 0x5a5);
+    #else
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a5a5);
+    fprintf(ptr, "%x", 0x5a);
+    #endif
 }
 
 // Driver code
@@ -254,6 +262,8 @@ int main()
 
     add_bootloader_config_data(ptr_txt_file);
 
+    
+#if 0
     //---------------------------------------------//
 
 	do {
@@ -275,9 +285,7 @@ int main()
             while(i < (index-1)/2)
             {
                 hex_pair[i] = (hex_file_code[j] << 4) | (hex_file_code[++j]);
-                //printf("%x ",hex_pair[i]);
-                j += 1;
-                i += 1;
+                //fclose(ptr_txt_file);+= 1;
                 
 
             }
@@ -303,7 +311,7 @@ int main()
 	// Closing the file
 	fclose(ptr);
 
-
+#endif
     //get the size of the hex data
     long int res = ftell(ptr_txt_file);
 
@@ -329,7 +337,7 @@ int main()
     for(int k = 0;k<4;k++)
         fprintf(ptr_txt_file, "%x ", stru.bytes[k]);
     fprintf(ptr_txt_file,"\n");
-
+    fclose(ptr_txt_file);
 	return 0;
 }
 
