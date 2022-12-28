@@ -4,6 +4,31 @@
 #define CRC_POLY_16         		0xA001
 #define CRC_START_MODBUS    		0xFFFF
 
+/*Partition*/
+
+/*Bootloader configuration data*/
+#define BOOTLOADER_PARTITION_SIZE_   64
+#define PARTITION_A_RESET_HANDLER   0x8020000UL
+#define PARTITION_B_RESET_HANDLER   0x80A0000UL
+#define PROGRAM_SEQ_A               1UL
+#define PROGRAM_SEQ_B               2UL
+#define PARTITION_A_FLASH_SIZE      512UL
+#define PARTITION_B_FLASH_SIZE      384UL
+
+/*Application configuration data*/
+/*Active program*/
+#define ACTIVE_PROGRAM_RESETHANDLER PARTITION_A_RESET_HANDLER
+#define ACTIVE_PROGRAM_SIZE         PARTITION_A_FLASH_SIZE
+#define ACTIVE_PROGRAM_PARTITION    "A"
+#define ACTIVE_PROGRAM_AUTHOR       "ATIQUE SHAIKH"
+#define ACTIVE_PROGRAM_FW_VERSION   "1.0.0"
+/*Backup program*/
+#define BACKUP_PROGRAM_RESETHANDLER PARTITION_B_RESET_HANDLER
+#define BACKUP_PROGRAM_SIZE         PARTITION_B_FLASH_SIZE
+#define BACKUP_PROGRAM_PARTITION    "B"
+#define BACKUP_PROGRAM_AUTHOR       "ATIQUE SHAIKH"
+#define BACKUP_PROGRAM_FW_VERSION   "1.0.0"
+
 typedef struct __attribute__((packed))
 {
 	uint32_t BOOTLOADER_PARTITION_SIZE;
