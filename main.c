@@ -45,7 +45,7 @@ int flash_addr;
 /*Reset handler address*/
 int reset_handler_addr;
 /*Hex file path*/
-char filename[] = "/home/atiqueshaikh/Forbes Marshall - Projects/STM32_UART/awa-cxii_1/Debug/awa-cxii_1.hex";
+char filename[] = "/home/atiqueshaikh/Forbes Marshall - Projects/STM32_UART/AWA_FOTA_PROGRAM_A2/Debug/AWA_FOTA_PROGRAM_A2.hex";
 /*Hex file parsed*/
 char filename_MCU[] = "Build/Read_data.txt";
 /*Info file*/
@@ -417,7 +417,7 @@ static void set_default_config_data(void)
 
     //BOOTLOADER
     strcpy(struct_BOOTLODERDATA.reboot_string,STARTUP_STRING);
-    struct_BOOTLODERDATA.BOOTLOADER_CONFIG_DATA.BOOT_SEQUENCE = PROGRAM_SEQ_A;
+    struct_BOOTLODERDATA.BOOTLOADER_CONFIG_DATA.BOOT_SEQUENCE = PROGRAM_SEQ_B;
     struct_BOOTLODERDATA.BOOTLOADER_CONFIG_DATA.BOOTLOADER_PARTITION_SIZE = BOOTLOADER_PARTITION_SIZE_;
     struct_BOOTLODERDATA.BOOTLOADER_CONFIG_DATA.PARTION_A_RESET_HANDLER_ADDRESS = PARTITION_A_RESET_HANDLER;
     struct_BOOTLODERDATA.BOOTLOADER_CONFIG_DATA.PARTION_A_FLASH_SIZE = PARTITION_A_FLASH_SIZE;
